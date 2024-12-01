@@ -7,7 +7,6 @@ export interface jwtUser {
   id: string;
   firstName: string;
   lastName: string;
-  role: "user" | "critic";
 }
 
 interface JwtPayloadWithUser extends JwtPayload {

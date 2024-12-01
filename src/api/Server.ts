@@ -1,5 +1,7 @@
 import e from "express";
 import { PhotosGroup } from "./photos/Group";
+import AuthGroup from "./auth/Group";
+import UserGroup from "./users/Group";
 
 export class Server {
   private app: e.Application;
@@ -22,8 +24,14 @@ export class Server {
       next();
     });
 
+    const authGroup = new AuthGroup();
+    this.app.use(authGroup.path, authGroup.getRouter())
+
     const photosGroup = new PhotosGroup();
     this.app.use(photosGroup.path, photosGroup.getRouter());
+
+    const userGroup = new UserGroup()
+    this.app.use(userGroup.path, userGroup.getRouter());
 
     this.app.get("/", (_, res) => {
       res.send("Hello World");
