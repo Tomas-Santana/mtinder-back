@@ -3,4 +3,5 @@ export interface AbstractFileSystem {
   read(path: string): Promise<string>;
   update(path: string, data: string): Promise<void>;
   delete(path: string): Promise<void>;
+  mkdir(path: string): Promise<void>;
 }

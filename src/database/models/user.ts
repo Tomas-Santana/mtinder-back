@@ -5,7 +5,8 @@ export interface IUser extends mongoose.Document {
   password: string;
   firstName: string;
   lastName: string;
-  imageUrl?: string
+  imageUrls?: string
+  profileReady?: boolean;
 }
 
 interface UserModel extends mongoose.Model<IUser> {
@@ -19,6 +20,8 @@ const UserSchema = new mongoose.Schema(
     password: { type: String, required: true },
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
+    profileReady: { type: Boolean, default: false },
+    imageUrls: { type: [String], default: [] },
   },
   {
     methods: {
@@ -28,6 +31,8 @@ const UserSchema = new mongoose.Schema(
           email: this.email,
           firstName: this.firstName,
           lastName: this.lastName,
+          imageUrls: this.imageUrls,
+          profileReady: this.profileReady,
         };
       },
     },

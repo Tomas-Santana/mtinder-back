@@ -18,4 +18,8 @@ export class LocalFS implements AbstractFileSystem {
   async delete(path: string): Promise<void> {
     fs.unlinkSync(`${LocalFS.root}/${path}`);
   }
+
+  async mkdir(path: string): Promise<void> {
+    fs.mkdirSync(`${LocalFS.root}/${path}`, { recursive: true });
+  }
 }

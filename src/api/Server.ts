@@ -16,7 +16,7 @@ export class Server {
   }
 
   public start() {
-    this.app.use(e.json());
+    this.app.use(e.json({limit: "50mb"})); 
     // logger
     this.app.use("/resources", e.static("data"));
     this.app.use((req, res, next) => {
