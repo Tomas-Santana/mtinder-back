@@ -2,6 +2,7 @@ import e from "express";
 import { PhotosGroup } from "./photos/Group";
 import AuthGroup from "./auth/Group";
 import UserGroup from "./users/Group";
+import { createRouteHandler } from "uploadthing/express";
 
 export class Server {
   private app: e.Application;
@@ -17,7 +18,6 @@ export class Server {
 
   public start() {
     this.app.use(e.json({limit: "50mb"})); 
-    // logger
     this.app.use("/resources", e.static("data"));
     this.app.use((req, res, next) => {
       console.log(`${req.method} ${req.path}`);

@@ -5,7 +5,7 @@ export interface IUser extends mongoose.Document {
   password: string;
   firstName: string;
   lastName: string;
-  imageUrls?: string
+  imageUrls?: string[];
   profileReady?: boolean;
 }
 

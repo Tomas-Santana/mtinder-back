@@ -2,6 +2,9 @@ import { AbstractFileSystem } from "../../storage/AbstractFileSystem";
 import { Request, Response } from "express";
 import { uploadImageRequest, uploadImagesRequest } from "../../types/api/uploadImageRequest";
 import JwtPayloadWithUser from "../../types/api/jwtPayload";
+import { FirebaseFS } from "../../storage/Firebase";
+import { processProfilePic } from "../../helpers/processFile";
+import User from "../../database/models/user";
 
 export async function uploadImage(req: Request, res: Response, fs: AbstractFileSystem) {
   
@@ -20,29 +23,40 @@ export async function uploadImage(req: Request, res: Response, fs: AbstractFileS
 export async function uploadProfileImages(req: Request, res: Response, fs: AbstractFileSystem) {
 
   const user = res.locals.user as JwtPayloadWithUser | undefined;
+  const files = req.files
 
+  if (!files || !Array.isArray(files)) {
+    res.status(400).json({error: "Invalid request"});
+    return;
+  }
   if (!user) {
     res.status(401).json({error: "Unauthorized"});
     return;
   }
 
-  const {success, data} = uploadImagesRequest.safeParse(req.body);
-
-  if (!success) {
-    res.status(400).json({error: "Invalid request"});
+  const ffs = new FirebaseFS();
+  const userRecord = await User.findById(user.user.id);
+  if (!userRecord) {
+    res.status(404).json({error: "User not found"});
     return;
   }
 
-  const imageUrls = [];
+  const urls = await Promise.all(files.map(async (file) => {
+    // create a random path for the file
+    const slug = Math.random().toString(36).substring(7);
+    const path = `profile_pics/${user.user.id}/${slug}.webp`;
+    const processed = await processProfilePic(file.buffer);
+    file.buffer = processed;
+    return await ffs.uploadFile(file, path);
+  }));
 
-  await fs.mkdir(`profiles/${user.user.id}`);
+  userRecord.imageUrls = urls;
 
-  for (let i = 0; i < data.imagesBase64.length; i++) {
-    const binData = Buffer.from(data.imagesBase64[i], 'base64');
-    await fs.create(`profiles/${user.user.id}/${i}.jpg`, binData);
-    imageUrls.push(`profiles/${user.user.id}/${i}.jpg`);
-  }
+  await userRecord.save();
 
-  res.json({imageUrls});
+  res.json({success: true, imageUrls: urls});
+
+
+
 }
 
