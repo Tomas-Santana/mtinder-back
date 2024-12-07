@@ -1,6 +1,6 @@
 import e from 'express'
 import type { RouterGroup } from '../../types/server/RouterGroup'
-import { deleteUser, updateUser } from './User'
+import { deleteUser, getUsers, updateUser } from './User'
 import { token } from '../middleware/token'
 
 class UserGroup implements RouterGroup {
@@ -11,6 +11,7 @@ class UserGroup implements RouterGroup {
     this.router.use(token)
     this.router.put('/:id', updateUser)
     this.router.delete('/:id', deleteUser)
+    this.router.get("/:id", getUsers)
     return this.router
   }
 }
