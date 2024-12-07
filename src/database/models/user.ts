@@ -22,6 +22,7 @@ const UserSchema = new mongoose.Schema(
     lastName: { type: String, required: true },
     profileReady: { type: Boolean, default: false },
     imageUrls: { type: [String], default: [] },
+    favoriteGenres: { type: [String], default: [] },
   },
   {
     methods: {
