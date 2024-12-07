@@ -11,6 +11,7 @@ export interface IUser extends mongoose.Document {
 
 interface UserModel extends mongoose.Model<IUser> {
   findByEmail(email: string): Promise<IUser | null>;
+  findAll(userId: string): Promise<IUser[] | null>;
   toJSON(): Omit<IUser, "password">;
 }
 
@@ -39,6 +40,9 @@ const UserSchema = new mongoose.Schema(
     statics: {
       findByEmail: function (email: string) {
         return this.findOne({ email });
+      },
+      findAll: function (userId: string) {
+        return this.find({ _id: { $ne: userId } });
       },
     },
     virtuals: {

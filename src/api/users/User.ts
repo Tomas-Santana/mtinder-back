@@ -28,6 +28,18 @@ export const deleteUser = async (_req: Request, res: Response) => {
 
 }
 
+export const getUsers = async (_req: Request, res: Response) => {
+  const { id } = _req.params
+  try {
+    const users = await User.findAll(id);
+    console.log(users);
+    res.status(200).json(users || []);
+  } catch (err) {
+    console.log(err)
+    res.status(500).json({ error: "Internal server error." })
+  }
+}
+
 export const updateUser = async (req: Request, res: Response) => {
   const { _id, firstName, lastName } = req.body
 
