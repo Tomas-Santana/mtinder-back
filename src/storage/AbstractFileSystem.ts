@@ -1,7 +1,9 @@
 export interface AbstractFileSystem {
-  create(path: string, data: Buffer): Promise<void>;
-  read(path: string): Promise<string>;
-  update(path: string, data: string): Promise<void>;
+  create(buffer: Buffer, mimetype: string, path: string): Promise<string>;
   delete(path: string): Promise<void>;
-  mkdir(path: string): Promise<void>;
+  deleteFromUrl(url: string): Promise<void>;
+  // read(path: string): Promise<string>;
+  // update(path: string, data: string): Promise<void>;
+  // delete(path: string): Promise<void>;
+  // mkdir(path: string): Promise<void>;
 }

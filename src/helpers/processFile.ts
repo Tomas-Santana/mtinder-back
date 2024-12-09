@@ -5,5 +5,5 @@ export const processProfilePic = async (buffer: Buffer) => {
   return sharp(buffer)
     .resize({ width: 600, height: 800, fit: "cover" })
     .webp({force: true})
-    .toBuffer(); 
+    .toBuffer();
 }

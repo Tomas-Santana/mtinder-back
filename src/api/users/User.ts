@@ -1,8 +1,14 @@
 import User from "../../database/models/user";
 import { Request, Response } from "express";
+import JwtPayloadWithUser from "../../types/api/jwtPayload";
 
 export const deleteUser = async (_req: Request, res: Response) => {
-  const { id } = _req.params;
+  const user = res.locals.user as JwtPayloadWithUser | undefined;
+  if (!user) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  const id = user.user.id;
 
   if (!id) {
     res.status(400).json({ error: "Valid id not founded." });
@@ -32,7 +38,6 @@ export const getUsers = async (_req: Request, res: Response) => {
   const { id } = _req.params
   try {
     const users = await User.findAll(id);
-    console.log(users);
     res.status(200).json(users || []);
   } catch (err) {
     console.log(err)

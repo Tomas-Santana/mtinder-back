@@ -1,7 +1,12 @@
 import e from "express";
 import type { RouterGroup } from "../../types/server/RouterGroup";
 import { login, register, checkEmail } from "./Login";
-import { SendResetEmail, updatePassword, verifyResetCodes } from "./ResetPassword";
+import {
+  SendResetEmail,
+  updatePassword,
+  verifyResetCodes,
+} from "./ResetPassword";
+import { token } from "../middleware/token";
 
 class AuthGroup implements RouterGroup {
   public path = "/auth";
@@ -13,7 +18,8 @@ class AuthGroup implements RouterGroup {
     this.router.post("/check-email", checkEmail);
     this.router.post("/send-reset-email", SendResetEmail);
     this.router.post("/verify-reset-code", verifyResetCodes);
-    this.router.post("/reset-password", updatePassword)
+    this.router.post("/reset-password", updatePassword);
+
     return this.router;
   }
 }

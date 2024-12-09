@@ -5,7 +5,7 @@ const serviceAccount = require("../../cert/admin-cert.json");
 
 initializeApp({
   credential: cert(serviceAccount),
-  storageBucket: "cervant-admin-panel.appspot.com",
+  storageBucket: "mellow-mates-db93c.firebasestorage.app",
 });
 
 export const bucket = getStorage().bucket();
