@@ -21,7 +21,9 @@ export async function requestMatch(req: Request, res: Response, io: Server, sock
   });
 
   if (existingMatchRequest) {
-    res.status(200).json({ status: "existing" });
+    res.status(200).json({ status: "existed" });
+    existingMatchRequest.status = "accepted";
+    await existingMatchRequest.save();
     return;
   }
 
@@ -51,5 +53,5 @@ export async function requestMatch(req: Request, res: Response, io: Server, sock
     });
   }
 
-  res.status(200).json({ status: "pending" });
+  res.status(200).json({ status: "created" });
 }

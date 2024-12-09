@@ -3,6 +3,7 @@ import { PhotosGroup } from "./photos/Group";
 import AuthGroup from "./auth/Group";
 import UserGroup from "./users/Group";
 import ChatGroup from "./chat/Group";
+import MatchGroup from "./match/Group";
 import * as http from "http";
 import { DefaultEventsMap, Server as SocketServer } from "socket.io";
 import { createRouteHandler } from "uploadthing/express";
@@ -59,6 +60,9 @@ export class Server {
 
     const chatGroup = new ChatGroup();
     this.app.use(chatGroup.path, chatGroup.getRouter());
+
+    const matchGroup = new MatchGroup(this.io, this.socketUsers);
+    this.app.use(matchGroup.path, matchGroup.getRouter());
 
     this.io.use(socketToken);
 
