@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import { jwtUser } from "../types/api/jwtPayload";
+import { JwtUser } from "../types/api/jwtPayload";
 import jwt from "jsonwebtoken";
 
 export const hashPassword = (password: string) => {
@@ -9,9 +9,9 @@ export const hashPassword = (password: string) => {
 
 export const comparePassword = async (password: string, hash: string) => {
   return bcrypt.compare(password, hash);
-}
+};
 
-export const generateToken = (user: jwtUser) => {
+export const generateToken = (user: JwtUser) => {
   const secret = process.env.JWT_SECRET ?? "";
   if (!secret) {
     throw new Error("No secret provided");
