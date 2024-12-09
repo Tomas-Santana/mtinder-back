@@ -13,5 +13,5 @@ const fileUpload = z.object({
 
 export const completeProfileRequest = z.object({
   images: z.array(fileUpload).max(5),
-  genres: z.array(z.string()),
+  genres: z.array(z.string()).min(1),
 });

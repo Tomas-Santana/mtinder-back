@@ -1,6 +1,5 @@
 import { cert, initializeApp } from "firebase-admin/app";
 import { getStorage } from "firebase-admin/storage";
-import { Storage } from "@google-cloud/storage";
 
 const serviceAccount = require("../../cert/admin-cert.json");
 

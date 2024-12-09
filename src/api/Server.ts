@@ -2,12 +2,16 @@ import e from "express";
 import { PhotosGroup } from "./photos/Group";
 import AuthGroup from "./auth/Group";
 import UserGroup from "./users/Group";
+import ChatGroup from "./chat/Group";
 import * as http from "http";
-import { Server as SocketServer } from "socket.io";
+import { DefaultEventsMap, Server as SocketServer } from "socket.io";
 import { createRouteHandler } from "uploadthing/express";
 import Chat from "../database/models/chat";
 import Message from "../database/models/message";
 import mongoose from "mongoose";
+import { socketToken } from "./middleware/token";
+import { jwtUser } from "../types/api/jwtPayload";
+import { ServerToClientEvents, SocketData } from "../types/socket";
 
 export class Server {
   private app: e.Application;
@@ -16,13 +20,14 @@ export class Server {
   private static DEFAULT_ADDRESS = "127.0.0.1";
   private serverHttp: http.Server;
   private io: SocketServer;
+  socketUsers: Map<string, jwtUser> = new Map(); // maps socketid to userId
 
   constructor(port: number, address?: string) {
     this.app = e();
     this.port = port;
     this.address = address;
     this.serverHttp = http.createServer(this.app);
-    this.io = new SocketServer(this.serverHttp);
+    this.io = new SocketServer<ServerToClientEvents, DefaultEventsMap, DefaultEventsMap, SocketData>(this.serverHttp);
   }
 
   public start() {
@@ -45,9 +50,21 @@ export class Server {
     this.app.get("/", (_, res) => {
       res.send("Hello World");
     });
+
+    const chatGroup = new ChatGroup();
+    this.app.use(chatGroup.path, chatGroup.getRouter());
+
+    this.io.use(socketToken);
+    
     
     this.io.on("connection", (socket) => {
-      console.log("New client connected", socket.id);
+      
+      const user = socket.data.user as jwtUser;
+      
+      this.socketUsers.set(socket.id, user);
+      
+      console.log("New client connected", socket.id, user.firstName);
+      
     
       socket.on("joinRoom", async ({ roomId, participants }) => {
         socket.join(roomId);

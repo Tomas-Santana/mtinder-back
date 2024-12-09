@@ -4,18 +4,29 @@ export interface IChat extends mongoose.Document {
   roomId:string;
   participants: mongoose.Schema.Types.ObjectId[];
   messages: mongoose.Types.ObjectId[]
+  lastMessage?: {
+    message: string;
+    senderName: string;
+    timestamp: Date;
+  };
 }
 
 export interface ChatModel extends mongoose.Model<IChat> {
   findChat(chatId: string): Promise<IChat | null>
   findAllChats(userId: string): Promise<IChat[] | null>
+  findByUserId(userId: string): Promise<IChat[] | null>
   toJSON(): IChat
 }
 
 const ChatSchema = new mongoose.Schema({
   roomId: { type: String, required: true },
   participants: { type: [mongoose.Schema.Types.ObjectId], ref: "User", required: true },
-  messages: { type: [mongoose.Types.ObjectId], ref: "Message" }
+  messages: { type: [mongoose.Types.ObjectId], ref: "Message" },
+  lastMessage: {
+    message: { type: String, required: true },
+    senderName: { type: String, required: true },
+    timestamp: { type: Date, required: true }
+  }
 }, {
   methods: {
     toJSON(){
@@ -31,6 +42,9 @@ const ChatSchema = new mongoose.Schema({
       return this.findById(chatId);
     },
     findAllChats(userId: string): Promise<IChat[] | null> {
+      return this.find({ participants: userId });
+    },
+    findByUserId(userId: string): Promise<IChat[] | null> {
       return this.find({ participants: userId });
     }
   }

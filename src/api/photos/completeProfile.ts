@@ -52,6 +52,9 @@ export async function completeProfile(
   );
 
   userRecord.imageUrls = urls;
+  userRecord.favoriteGenres = data.genres;
+  userRecord.profileReady = true;
+  
 
   await userRecord.save();
 

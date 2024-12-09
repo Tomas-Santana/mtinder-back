@@ -7,6 +7,7 @@ export interface IUser extends mongoose.Document {
   lastName: string;
   imageUrls?: string[];
   profileReady?: boolean;
+  favoriteGenres?: string[];
 }
 
 interface UserModel extends mongoose.Model<IUser> {
@@ -35,6 +36,7 @@ const UserSchema = new mongoose.Schema(
           lastName: this.lastName,
           imageUrls: this.imageUrls,
           profileReady: this.profileReady,
+          favoriteGenres: this.favoriteGenres,
         };
       },
     },
