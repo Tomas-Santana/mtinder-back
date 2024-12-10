@@ -3,6 +3,12 @@ import mongoose from "mongoose";
 export interface IChat extends mongoose.Document {
   roomId:string;
   participants: mongoose.Schema.Types.ObjectId[];
+  participantsInfo: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    profilePicture?: string;
+  }[];
   messages: mongoose.Types.ObjectId[]
   lastMessage?: {
     message: string;
@@ -21,6 +27,12 @@ export interface ChatModel extends mongoose.Model<IChat> {
 const ChatSchema = new mongoose.Schema({
   roomId: { type: String, required: true },
   participants: { type: [mongoose.Schema.Types.ObjectId], ref: "User", required: true },
+  participantsInfo: {type: [{
+    _id: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    firstName: { type: String, required: true },
+    lastName: { type: String, required: true },
+    profilePicture: { type: String }
+  }], required: true},
   messages: { type: [mongoose.Types.ObjectId], ref: "Message" },
   lastMessage: {
     message: { type: String, required: true },
@@ -34,6 +46,7 @@ const ChatSchema = new mongoose.Schema({
         _id: this._id,
         roomId: this.roomId,
         participants: this.participants,
+        participantsInfo: this.participantsInfo,
         messages: this.messages
       }
     }, 

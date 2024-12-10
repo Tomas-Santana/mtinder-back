@@ -32,6 +32,7 @@ export async function login(req: Request, res: Response) {
     id: user.id,
     firstName: user.firstName,
     lastName: user.lastName,
+    
   });
 
   const response: LoginResponse = {
