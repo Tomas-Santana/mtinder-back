@@ -9,7 +9,7 @@ export const deleteUser = async (_req: Request, res: Response) => {
     return;
   }
   const id = user.user.id;
-
+ 
   if (!id) {
     res.status(400).json({ error: "Valid id not founded." });
     return;
@@ -27,7 +27,6 @@ export const deleteUser = async (_req: Request, res: Response) => {
     res.status(200).json({ _id: deleted.id });
 
   } catch (error) {
-    console.log(error);
     res.status(500).json({ error: "Internal server error." });
   }
 
@@ -40,23 +39,24 @@ export const getUsers = async (_req: Request, res: Response) => {
     const users = await User.findAll(id);
     res.status(200).json(users || []);
   } catch (err) {
-    console.log(err)
     res.status(500).json({ error: "Internal server error." })
   }
 }
 
 export const updateUser = async (req: Request, res: Response) => {
-  const { _id, firstName, lastName } = req.body
+  
+  const { _id, firstName, lastName, favoriteGenres } = req.body
 
-  if(!_id || !firstName || !lastName) {
+  if(!_id || !firstName || !lastName || !favoriteGenres) {
     res.status(400).json({ error: "Invalid request." });
     return;
   }
 
-  const updateData: Partial<{ firstName: string; lastName: string; }> ={};
+  const updateData: Partial<{ firstName: string; lastName: string; favoriteGenres: string[] }> ={};
 
   if(firstName) updateData.firstName = firstName;
   if(lastName) updateData.lastName = lastName;
+  if(favoriteGenres) updateData.favoriteGenres = favoriteGenres;
 
   try {
     const updated = await User.findByIdAndUpdate(_id, updateData, { new: true });
@@ -64,9 +64,9 @@ export const updateUser = async (req: Request, res: Response) => {
       res.status(404).json({ error: "User not found." });
       return;
     }
-    res.status(200).json({ _id: updated.id, firstName: updated.firstName, lastName: updated.lastName});
+    
+    res.status(200).json({ _id: updated.id, firstName: updated.firstName, lastName: updated.lastName, favoriteGenres: updated.favoriteGenres});
   } catch(err) {
-    console.log(err)
     res.status(500).json({ error: "Internal server error." })
   }
 }
