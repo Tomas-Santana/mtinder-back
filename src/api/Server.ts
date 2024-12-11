@@ -120,10 +120,11 @@ export class Server {
 
     this.serverHttp.listen(this.port, () => {
       console.log(
-        `Server listening on ${this.address || Server.DEFAULT_ADDRESS}:${
+        `Server listening on ${this.serverHttp.address}:${
           this.port
         }`
       );
     });
+    
   }
 }
