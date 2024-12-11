@@ -2,6 +2,7 @@ import e from "express";
 import type { RouterGroup } from "../../types/server/RouterGroup";
 import { token } from "../middleware/token";
 import { getChats } from "./GetChats";
+import { deleteChat } from "./DeleteChat";
 import { getMessages } from "./GetMessages";
 import { sendMessage } from "./SendMessage";
 import { Server } from "socket.io";
@@ -18,6 +19,7 @@ class ChatGroup implements RouterGroup {
   getRouter(): e.Router {
     this.router.use(token);
     this.router.get("/", getChats);
+    this.router.delete("/:id", deleteChat);
     this.router.get("/:chatId/messages", getMessages);
     this.router.post("/:chatId/messages", 
       (req, res) => {
