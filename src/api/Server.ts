@@ -120,7 +120,7 @@ export class Server {
 
     this.serverHttp.listen(this.port, () => {
       console.log(
-        `Server listening on ${this.serverHttp.address}:${
+        `Server listening on ${this.serverHttp.address()}:${
           this.port
         }`
       );
