@@ -62,6 +62,8 @@ export async function checkEmail(req: Request, res: Response) {
 
 
 export async function register(req: Request, res: Response) {
+  console.log(req.body);
+
   const {success, data, error} = registerSchema.safeParse(req.body);
 
   if (!success || !data) {
