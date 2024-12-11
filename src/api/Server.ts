@@ -14,6 +14,7 @@ import { socketToken } from "./middleware/token";
 import { JwtUser } from "../types/api/jwtPayload";
 import { ServerToClientEvents, SocketData } from "../types/socket";
 import TwoWayMap from "../helpers/twoWayMap";
+import { SocketGroup } from "./socket/Group";
 
 export class Server {
   private app: e.Application;
@@ -58,7 +59,7 @@ export class Server {
       res.send("Hello World");
     });
 
-    const chatGroup = new ChatGroup();
+    const chatGroup = new ChatGroup(this.io);
     this.app.use(chatGroup.path, chatGroup.getRouter());
 
     const matchGroup = new MatchGroup(this.io, this.socketUsers);
@@ -71,9 +72,11 @@ export class Server {
 
       this.socketUsers.set(socket.id, user.id);
 
+      SocketGroup.joinHandler(socket); // adds the user to all chats they are in
+
       console.log("New client connected", socket.id, user.firstName);
 
-      socket.on("joinRoom", async ({ roomId, participants }) => {
+      socket.on("join", async ({ roomId, participants }) => {
         socket.join(roomId);
         console.log(`Client ${socket.id} joined room ${roomId}`);
 

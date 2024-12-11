@@ -6,7 +6,6 @@ export async function getChats(req: Request, res: Response) {
   const user = res.locals.user as JwtPayloadWithUser;
 
   const userChats = await Chat.findByUserId(user.user.id)
-  console.log("user.chats", userChats)
 
   res.json({
     chats: userChats

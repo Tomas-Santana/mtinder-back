@@ -1,7 +1,13 @@
-import { cert, initializeApp } from "firebase-admin/app";
+import { cert, initializeApp, ServiceAccount } from "firebase-admin/app";
 import { getStorage } from "firebase-admin/storage";
+import "dotenv/config";
 
-const serviceAccount = require("../../cert/admin-cert.json");
+
+const serviceAccount: ServiceAccount = {
+  privateKey: process.env.FIREBASE_PRIVATE_KEY,
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+};
 
 initializeApp({
   credential: cert(serviceAccount),

@@ -76,12 +76,13 @@ export async function requestMatch(
     res.status(200).json({ status: "accepted", chatId: newChat._id });
 
     // notify both users that they have a new chat
-    const fromSocketId = socketUsers.getKey(data.userId);
-    const toSocketId = socketUsers.getKey(user.user.id);
+    const toSocketId = socketUsers.getKey(data.userId);
+    const fromSocketId = socketUsers.getKey(user.user.id);
 
     if (fromSocketId) {
+      const NOTOAST = true; // since app already shows a banner, prevent a toast
       console.log("emitting new chat to", fromSocketId);
-      io.to(fromSocketId).emit("newChat", newChat);
+      io.to(fromSocketId).emit("newChat", newChat, NOTOAST);
     }
     if (toSocketId) {
       console.log("emitting new chat to", toSocketId);
