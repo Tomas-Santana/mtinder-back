@@ -7,3 +7,10 @@ export const processProfilePic = async (buffer: Buffer) => {
     .webp({force: true})
     .toBuffer();
 }
+
+export const processChatPic = async (buffer: Buffer) => {
+  // dont change ratio but compress
+  return sharp(buffer)
+    .webp({force: true})
+    .toBuffer();
+}

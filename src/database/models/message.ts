@@ -29,7 +29,8 @@ const MessageSchema = new mongoose.Schema({
         userId: this.userId,
         timestamp: this.timestamp,
         chatId: this.chatId,
-        contentType: this.contentType
+        contentType: this.contentType,
+
       }
     }
   },

@@ -51,29 +51,16 @@ export async function requestMatch(
 
     const newChat = new Chat({
       participants: [data.userId, user.user.id],
-      roomId: `${data.userId}-${user.user.id}`,
-      participantsInfo: [{
-        _id: data.userId,
-        firstName: otherUser.firstName,
-        lastName: otherUser.lastName,
-        profilePicture: otherUser.imageUrls?.[0],
-      }, {
-        _id: user.user.id,
-        firstName: user.user.firstName,
-        lastName: user.user.lastName,
-        profilePicture: fullUser.imageUrls?.[0],
-      }],
-      
       lastMessage: {
         message: "Say hi to your new friend!",
-        senderName: "Mellow Mates",
+        senderId: "mm",
         timestamp: new Date(),
       },
     });
 
     await newChat.save();
 
-    res.status(200).json({ status: "accepted", chatId: newChat._id });
+    res.status(200).json({ status: "accepted", chatId: newChat._id, chat: newChat });
 
     // notify both users that they have a new chat
     const toSocketId = socketUsers.getKey(data.userId);
@@ -83,10 +70,13 @@ export async function requestMatch(
       const NOTOAST = true; // since app already shows a banner, prevent a toast
       console.log("emitting new chat to", fromSocketId);
       io.to(fromSocketId).emit("newChat", newChat, NOTOAST);
+      // add the user to the chat room
+      io.sockets.sockets.get(fromSocketId)?.join(newChat.id as string);
     }
     if (toSocketId) {
       console.log("emitting new chat to", toSocketId);
       io.to(toSocketId).emit("newChat", newChat);
+      io.sockets.sockets.get(toSocketId)?.join(newChat.id as string);
     }
 
     await existingMatchRequest.save();

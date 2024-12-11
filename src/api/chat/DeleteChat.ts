@@ -1,9 +1,14 @@
 import { Request, Response } from "express";
 import Chat from "../../database/models/chat";
 import { DeleteChatResponseSchema, DeleteChatRequest, DeleteChatRequestSchema } from "../../types/api/deleteChat";
+import JwtPayloadWithUser from "../../types/api/jwtPayload";
+import mongoose from "mongoose";
+import { Server} from "socket.io";
 
-export const deleteChat = async (req: Request, res: Response) => {
+export const deleteChat = async (req: Request, res: Response, io: Server) => {
   const { id } = req.params;
+
+  const user = res.locals.user as JwtPayloadWithUser;
 
   const { success, data, error } = DeleteChatRequestSchema.safeParse({
     _id: id,
@@ -22,12 +27,25 @@ export const deleteChat = async (req: Request, res: Response) => {
   try {
     const toDelete = await Chat.findById(data._id);
 
-    if(!toDelete) {
-      res.status(404).json({ error: "Chat not founded" });
+    
+    const stringParticipants = toDelete?.participants.map((p) => p.toString());
+    const isMember = stringParticipants?.includes(user.user.id);
+
+    if (!isMember) {
+      res.status(403).json({ error: "You are not a member of this chat" });
       return;
     }
 
+    if(!toDelete) {
+      res.status(404).json({ error: "Chat not found" });
+      return;
+    }
+
+
     await toDelete.deleteOne()
+
+    // Emit to all users in the chat that the chat was deleted
+    io.to(data._id).emit("deleteChat", data._id);
 
     res.status(200).json({ _id: toDelete.id });
   } catch (error) {

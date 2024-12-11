@@ -1,18 +1,13 @@
 import mongoose from "mongoose";
+import { IUser } from "./user";
 
 export interface IChat extends mongoose.Document {
   participants: mongoose.Schema.Types.ObjectId[];
-  participantsInfo: {
-    _id: string;
-    firstName: string;
-    lastName: string;
-    profilePicture?: string;
-  }[];
   messages: mongoose.Types.ObjectId[]
   lastMessage?: {
     message: string;
-    senderName: string;
     timestamp: Date;
+    senderId: string
   };
 }
 
@@ -25,17 +20,11 @@ export interface ChatModel extends mongoose.Model<IChat> {
 
 const ChatSchema = new mongoose.Schema({
   participants: { type: [mongoose.Schema.Types.ObjectId], ref: "User", required: true },
-  participantsInfo: {type: [{
-    _id: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
-    profilePicture: { type: String }
-  }], required: true},
   messages: { type: [mongoose.Types.ObjectId], ref: "Message" },
   lastMessage: {
     message: { type: String, required: true },
-    senderName: { type: String, required: true },
-    timestamp: { type: Date, required: true }
+    timestamp: { type: Date, required: true },
+    senderId: { type: String, required: true }
   }
 }, {
   methods: {
@@ -43,8 +32,8 @@ const ChatSchema = new mongoose.Schema({
       return {
         _id: this._id,
         participants: this.participants,
-        participantsInfo: this.participantsInfo,
-        messages: this.messages
+        messages: this.messages,
+        lastMessage: this.lastMessage
       }
     }, 
   }, statics: {
@@ -55,7 +44,7 @@ const ChatSchema = new mongoose.Schema({
       return this.find({ participants: userId });
     },
     findByUserId(userId: string): Promise<IChat[] | null> {
-      return this.find({ participants: userId });
+      return this.find({ participants: userId }).populate("participants") as unknown as Promise<IChat[] | null>;
     }
   }
 })
