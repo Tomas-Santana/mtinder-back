@@ -83,8 +83,8 @@ export async function register(req: Request, res: Response) {
   const newUser = new User({
     email: data.email,
     password: hashedPassword,
-    firstName: data.firstName,
-    lastName: data.lastName,
+    firstName: data.firstName.trim(),
+    lastName: data.lastName.trim(),
   });
 
   

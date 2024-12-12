@@ -19,6 +19,16 @@ export class FirebaseFS implements AbstractFileSystem {
     const path = getPathFromUrl(url);
     await bucket.file(path).delete();
   }
+
+  getUserIdfromUrl(url: string) {
+
+    if (!url.includes("profile_pics")) {
+      return null;
+    }
+
+    const split = url.split("%2F");
+    return split[2];
+  }
 }
 
 export function getPathFromUrl(url: string) {
