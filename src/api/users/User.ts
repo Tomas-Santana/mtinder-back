@@ -1,6 +1,9 @@
 import User from "../../database/models/user";
 import { Request, Response } from "express";
 import JwtPayloadWithUser from "../../types/api/jwtPayload";
+import MatchRequest from "../../database/models/matchRequest";
+import Chat from "../../database/models/chat";
+import mongoose from "mongoose";
 
 export const deleteUser = async (_req: Request, res: Response) => {
   const user = res.locals.user as JwtPayloadWithUser | undefined;
@@ -29,17 +32,24 @@ export const deleteUser = async (_req: Request, res: Response) => {
   } catch (error) {
     res.status(500).json({ error: "Internal server error." });
   }
-
-
 }
 
 export const getUsers = async (_req: Request, res: Response) => {
-  const { id } = _req.params
+  const user = res.locals.user as JwtPayloadWithUser 
+
+  if (!user) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+
+  // get possible matches
   try {
-    const users = await User.findAll(id);
-    res.status(200).json(users || []);
+    const possibleMatches = await getPossibleMatches(
+      new mongoose.Types.ObjectId(user.user.id)
+    );
+    res.status(200).json(possibleMatches);
   } catch (err) {
-    res.status(500).json({ error: "Internal server error." })
+    res.status(500).json({ error: "Internal server error." });
   }
 }
 
@@ -69,4 +79,55 @@ export const updateUser = async (req: Request, res: Response) => {
   } catch(err) {
     res.status(500).json({ error: "Internal server error." })
   }
+}
+
+async function getPossibleMatches(userId: mongoose.Types.ObjectId) {
+  const user = await User.findById(userId).select("favoriteGenres");
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  const favoriteGenres = user.favoriteGenres;
+
+  const usersWithCommonGenres = await User.find({
+    _id: { $ne: userId },
+    favoriteGenres: { $in: favoriteGenres },
+  }).select("_id");
+
+  const userIdsWithCommonGenres = usersWithCommonGenres.map((user) => user._id as mongoose.Types.ObjectId);
+
+  const chats = await Chat.find({
+    participants: userId,
+  }).select("participants");
+
+  const userIdsWithChats = new Set();
+  chats.forEach((chat) => {
+    chat.participants.forEach((participant) => {
+      if (participant.toString() !== userId.toString()) {
+        userIdsWithChats.add(participant.toString());
+      }
+    });
+  });
+
+  const pendingMatchRequests = await MatchRequest.find({
+    from: userId,
+    status: "pending",
+  }).select("to");
+
+  const userIdsWithPendingRequests = new Set(
+    pendingMatchRequests.map((request) => request.to.toString())
+  );
+
+  const possibleMatches = userIdsWithCommonGenres.filter((userId) => {
+    return (
+      !userIdsWithChats.has(userId.toString()) &&
+      !userIdsWithPendingRequests.has(userId.toString())
+    );
+  });
+
+  const possibleMatchUsers = await User.find({
+    _id: { $in: possibleMatches },
+  });
+
+  return possibleMatchUsers;
 }
