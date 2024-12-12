@@ -26,8 +26,6 @@ export const deleteChat = async (req: Request, res: Response, io: Server) => {
 
   try {
     const toDelete = await Chat.findById(data._id);
-
-    
     const stringParticipants = toDelete?.participants.map((p) => p.toString());
     const isMember = stringParticipants?.includes(user.user.id);
 

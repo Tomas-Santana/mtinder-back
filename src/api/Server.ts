@@ -52,7 +52,7 @@ export class Server {
     const photosGroup = new PhotosGroup();
     this.app.use(photosGroup.path, photosGroup.getRouter());
 
-    const userGroup = new UserGroup();
+    const userGroup = new UserGroup(this.io);
     this.app.use(userGroup.path, userGroup.getRouter());
 
     this.app.get("/", (_, res) => {

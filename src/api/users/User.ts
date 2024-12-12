@@ -4,8 +4,9 @@ import JwtPayloadWithUser from "../../types/api/jwtPayload";
 import MatchRequest from "../../database/models/matchRequest";
 import Chat from "../../database/models/chat";
 import mongoose from "mongoose";
+import { Server } from "socket.io";
 
-export const deleteUser = async (_req: Request, res: Response) => {
+export const deleteUser = async (_req: Request, res: Response, io: Server) => {
   const user = res.locals.user as JwtPayloadWithUser | undefined;
   if (!user) {
     res.status(401).json({ error: "Unauthorized" });
@@ -29,6 +30,18 @@ export const deleteUser = async (_req: Request, res: Response) => {
   
     res.status(200).json({ _id: deleted.id });
 
+    await MatchRequest.deleteMany({ $or: [{ from: id }, { to: id }] });
+    const chats = await Chat.find({ participants: id }).select("_id");
+    await Chat.deleteMany({ participants: id });    
+    chats.forEach((chat) => {
+      const stringId = chat.id
+      if (!stringId) {
+        return;
+      }
+      console.log("deleteChat", stringId);
+      io.to(stringId).emit("deleteChat", stringId);
+    });
+
   } catch (error) {
     res.status(500).json({ error: "Internal server error." });
   }
@@ -45,7 +58,7 @@ export const getUsers = async (_req: Request, res: Response) => {
   // get possible matches
   try {
     const possibleMatches = await getPossibleMatches(
-      new mongoose.Types.ObjectId(user.user.id)
+      user.user.id
     );
     res.status(200).json(possibleMatches);
   } catch (err) {
@@ -81,33 +94,16 @@ export const updateUser = async (req: Request, res: Response) => {
   }
 }
 
-async function getPossibleMatches(userId: mongoose.Types.ObjectId) {
-  const user = await User.findById(userId).select("favoriteGenres");
-  if (!user) {
-    throw new Error("User not found");
+async function getPossibleMatches(userId:string) {
+
+  const userDoc = await User.findById(userId).select("favoriteGenres");
+  console.log(userDoc);
+
+  if (!userDoc) {
+    throw new Error("User not found.");
   }
 
-  const favoriteGenres = user.favoriteGenres;
-
-  const usersWithCommonGenres = await User.find({
-    _id: { $ne: userId },
-    favoriteGenres: { $in: favoriteGenres },
-  }).select("_id");
-
-  const userIdsWithCommonGenres = usersWithCommonGenres.map((user) => user._id as mongoose.Types.ObjectId);
-
-  const chats = await Chat.find({
-    participants: userId,
-  }).select("participants");
-
-  const userIdsWithChats = new Set();
-  chats.forEach((chat) => {
-    chat.participants.forEach((participant) => {
-      if (participant.toString() !== userId.toString()) {
-        userIdsWithChats.add(participant.toString());
-      }
-    });
-  });
+  
 
   const pendingMatchRequests = await MatchRequest.find({
     from: userId,
@@ -118,16 +114,33 @@ async function getPossibleMatches(userId: mongoose.Types.ObjectId) {
     pendingMatchRequests.map((request) => request.to.toString())
   );
 
-  const possibleMatches = userIdsWithCommonGenres.filter((userId) => {
-    return (
-      !userIdsWithChats.has(userId.toString()) &&
-      !userIdsWithPendingRequests.has(userId.toString())
-    );
-  });
+  // get all match request accepted where the user is the sender or the receiver
 
-  const possibleMatchUsers = await User.find({
-    _id: { $in: possibleMatches },
-  });
+  const acceptedMatchRequests = await MatchRequest.find({
+    $or: [{ from: userId }, { to: userId }],
+    status: "accepted",
+  }).select("from to");
 
-  return possibleMatchUsers;
+  const userIdsThatUserHasMatchedWith = new Set(
+    acceptedMatchRequests.map((request) => {
+      if (request.from.toString() === userId) {
+        return request.to.toString();
+      }
+      return request.from.toString();
+    })
+  );
+  console.log(userIdsThatUserHasMatchedWith);
+
+
+  const possibleMatches = await User.find({
+    _id: {
+      $nin: Array.from(userIdsThatUserHasMatchedWith).concat(Array.from(userIdsWithPendingRequests)).concat([userId]),
+    },
+    favoriteGenres: { $in: userDoc.favoriteGenres },
+  })
+
+  console.log(possibleMatches);
+
+
+  return possibleMatches;
 }

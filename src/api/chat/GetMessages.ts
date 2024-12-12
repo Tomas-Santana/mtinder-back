@@ -10,6 +10,7 @@ export async function getMessages(req: Request, res: Response) {
     res.status(400).json({
       message: "ChatId is required"
     })
+    return
   }
 
   const chat = await Chat.findById(chatId);
@@ -19,6 +20,7 @@ export async function getMessages(req: Request, res: Response) {
       deleted: true,
       messages: []
     })
+    return
   }
 
   const messages = await Message.getChatMessages(chatId);

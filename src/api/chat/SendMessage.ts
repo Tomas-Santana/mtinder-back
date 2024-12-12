@@ -64,3 +64,35 @@ export async function sendMessage(
     await chat.save();
   }
 }
+
+export async function deleteMessage(req: Request, res: Response, io: Server) {
+  const { id, chatId } = req.params;
+
+  if (!id) {
+    res.status(400).json({ error: "Invalid request." });
+    return;
+  }
+
+  const user = res.locals.user as JwtPayloadWithUser;
+
+  // check if user sent the message
+
+  const message = await Message.findById(id)
+
+  if (!message) {
+    res.status(404).json({ error: "Message not found." });
+    return;
+  }
+
+  if (message.userId.toString() !== user.user.id) {
+    res.status(403).json({ error: "You are not the sender of this message." });
+    return;
+  }
+
+  await Message.findByIdAndDelete(id);
+
+  io.to(chatId).emit("deleteMessage", id, chatId);
+
+  res.status(200).json({ _id: id });
+
+}

@@ -4,7 +4,7 @@ import { token } from "../middleware/token";
 import { getChats } from "./GetChats";
 import { deleteChat } from "./DeleteChat";
 import { getMessages } from "./GetMessages";
-import { sendMessage } from "./SendMessage";
+import { sendMessage, deleteMessage } from "./SendMessage";
 import { Server } from "socket.io";
 import { FirebaseFS } from "../../storage/FirebaseFS";
 
@@ -31,6 +31,11 @@ class ChatGroup implements RouterGroup {
     this.router.post("/:chatId/messages", 
       (req, res) => {
         sendMessage(req, res, this.io, fs);
+      }
+    );
+    this.router.delete("/:chatId/messages/:id", 
+      (req, res) => {
+        deleteMessage(req, res, this.io);
       }
     );
     return this.router;
